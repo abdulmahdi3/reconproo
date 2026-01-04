@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASDF | Pro Recon Framework</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-body: #09090b;
+            --bg-card: #18181b;
+            --border-color: #27272a;
+            --text-main: #e4e4e7;
+            --text-muted: #71717a;
+            --brand-primary: #f43f5e;
+            --brand-glow: rgba(244, 63, 94, 0.2);
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .brand {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 800;
+            font-size: 4rem;
+            letter-spacing: -2px;
+            background: linear-gradient(135deg, #fff, var(--brand-primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+            line-height: 1;
+        }
+        
+        .tagline {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 40px;
+            opacity: 0.8;
+        }
+
+        .control-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 900px;
+            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5);
+            margin-bottom: 30px;
+            position: sticky;
+            top: 20px;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .input-group { display: flex; gap: 12px; margin-bottom: 15px; }
+
+        input {
+            flex-grow: 1;
+            background: #000;
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 14px 18px;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        input:focus { border-color: var(--brand-primary); }
+
+        button {
+            background: var(--brand-primary);
+            color: #fff;
+            border: none;
+            padding: 0 24px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            transition: all 0.2s;
+            height: 48px;
+            white-space: nowrap;
+        }
+
+        button:hover { transform: translateY(-2px); box-shadow: 0 0 20px var(--brand-glow); }
+        button:disabled { background: var(--border-color); color: var(--text-muted); cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .btn-stop { background: var(--danger); }
+        .btn-action { background: #27272a; border: 1px solid var(--border-color); font-size: 0.8rem; height: 40px;}
+        .btn-action:hover { border-color: var(--text-main); background: #3f3f46; box-shadow: none; }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            justify-content: flex-end;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 4px;
+            background: #27272a;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--brand-primary);
+            width: 0%;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px var(--brand-primary);
+        }
+
+        .status-bar {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .dork-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 16px;
+            width: 100%;
+            max-width: 1600px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 18px;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .card:hover { border-color: var(--brand-primary); transform: translateY(-4px); background: #202024; }
+        .card.scanning { border-color: var(--brand-primary); box-shadow: 0 0 0 2px rgba(244, 63, 94, 0.3); }
+
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        
+        .card-cat {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .card-title { font-weight: 700; font-size: 1rem; color: var(--text-main); }
+        
+        .card-query {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: #a1a1aa;
+            background: #000;
+            padding: 10px;
+            border-radius: 6px;
+            word-break: break-all;
+            border: 1px solid var(--border-color);
+            margin-top: auto;
+            cursor: copy;
+            position: relative;
+        }
+        
+        .card-query:hover { border-color: var(--brand-primary); color: #fff; }
+        .card-query:active { transform: scale(0.98); }
+
+        .badge { font-size: 0.7rem; font-weight: 800; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
+        .badge.waiting { color: var(--text-muted); background: #27272a; }
+        .badge.loading { color: var(--warning); background: rgba(245, 158, 11, 0.1); }
+        .badge.success { color: #fff; background: var(--success); box-shadow: 0 0 10px rgba(16, 185, 129, 0.4); }
+        .badge.empty { color: var(--text-muted); opacity: 0.5; }
+        .badge.error { color: #fff; background: var(--danger); }
+
+    </style>
+</head>
+<body>
+
+    <h1 class="brand">ASDF</h1>
+    <div class="tagline">Advanced Recon / Dorks Framework</div>
+
+    <div class="control-panel">
+        <div class="input-group">
+            <input type="text" id="domainInput" placeholder="target.com" onkeypress="handleEnter(event)">
+            <button id="scanBtn" onclick="initScan()">START SCAN</button>
+            <button id="stopBtn" class="btn-stop" onclick="stopScan()" disabled>STOP</button>
+        </div>
+        
+        <div class="toolbar">
+            <button class="btn-action" onclick="exportCSV()">📄 Export CSV</button>
+            <button class="btn-action" onclick="copyResults()">📋 Copy Found URLs</button>
+        </div>
+
+        <div class="progress-track" id="progressTrack">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="status-bar">
+            <span id="apiStatus">API Nodes: Loading...</span>
+            <span id="scanStatus">Ready</span>
+        </div>
+    </div>
+
+    <div id="resultsArea" class="dork-grid"></div>
+
+    <script>
+        // ======================================================
+        // 1. SETTINGS & KEYS
+        // ======================================================
+        const globalCX = '17ba3fbde1f4743f0'; // Example CX
+
+        const apiPool = [
+            { key: 'AIzaSyCKBoXwfP4Cr3DNhoqqxCKWGirMLTSpVEA', cx: globalCX },
+            { key: 'AIzaSyAgkn3Jw0SPFkBQ9OlwCfrOYJ92_mBke68', cx: globalCX },
+            { key: 'AIzaSyAq7hioxEx4ymBqktDlXfo1bBQgD4mIGe4', cx: globalCX },
+            { key: 'AIzaSyB4jmkKjKa3xLY674W0hRTw1Zk0XeHzrKE', cx: globalCX },
+            { key: 'AIzaSyAeeYknazseQ85vWrP9pcAkJGOZqQHIOvc', cx: globalCX },
+            { key: 'AIzaSyAnM9PnsyYsBKRoPe5-rN7icPpRcupIVHY', cx: globalCX },
+            { key: 'AIzaSyDS7PtMVthuSr7ma5ylh8BwmJw6-_af0eg', cx: globalCX },
+            { key: 'AIzaSyAAFoNuiCKPFlETZLTiPZ3g8o6k7JzBXIw', cx: globalCX },
+            { key: 'AIzaSyApUTIYuDE5MT7Yp6hiPzqv91G83rRCHjI', cx: globalCX },
+            { key: 'AIzaSyABFd7EvlWh8efLT7AgMcVsiwPGo57-cZw', cx: globalCX },
+            { key: 'AIzaSyAiCe9BfeAUzPpyz_Ejy-y5tNUd-r_VhUU', cx: globalCX },
+            { key: 'AIzaSyBCiqylp3KTH8nGGVCymmQcdut_0VhYONk', cx: globalCX }
+        ];
+
+        // ======================================================
+        // 2. DORK LIST (De-duplicated & Categorized)
+        // ======================================================
+        const dorks = [
+            // --- SECRETS & KEYS ---
+            { cat: "SECRETS", title: "SSH Private Keys", query: "intitle:\"index of\" id_rsa | intitle:\"index of\" id_dsa | ext:ppk | ext:pem | ext:p12" },
+            { cat: "SECRETS", title: "AWS Credentials", query: "intext:\"AKIA\" intext:\"AWS_SECRET_ACCESS_KEY\"" },
+            { cat: "SECRETS", title: "AWS Keys (JSON)", query: "filetype:json intext:\"AWS_ACCESS_KEY_ID\"" },
+            { cat: "SECRETS", title: "Env Variables", query: "inurl:.env | filetype:env | inurl:.env intext:DB_PASSWORD" },
+            { cat: "SECRETS", title: "Laravel App Key", query: "inurl:.env intext:APP_KEY" },
+            { cat: "SECRETS", title: "Git Credentials", query: "inurl:\"/.git/config\" | intitle:\"index of\" \".git/config\"" },
+            { cat: "SECRETS", title: "Bash History", query: "intitle:\"index of\" \".bash_history\"" },
+            { cat: "SECRETS", title: "Android Keystore", query: "filetype:keystore" },
+            { cat: "SECRETS", title: "Secrets in Shell", query: "filetype:sh password" },
+            { cat: "SECRETS", title: "YAML Secrets", query: "filetype:yaml password" },
+            { cat: "SECRETS", title: "API Keys in JS", query: "filetype:js intext:\"apiKey\"" },
+            { cat: "SECRETS", title: "GitLab CI Tokens", query: "filetype:yaml intext:\"CI_JOB_TOKEN\"" },
+            { cat: "SECRETS", title: "Passwords in JSON", query: "filetype:json intext:\"password\"" },
+            { cat: "SECRETS", title: "License Keys", query: "filetype:txt intext:\"license key\"" },
+            { cat: "SECRETS", title: "HTPasswd Files", query: "filetype:htpasswd" },
+            { cat: "SECRETS", title: "PGP Private Keys", query: "-----BEGIN PGP PRIVATE KEY BLOCK-----" },
+
+            // --- CLOUD & INFRASTRUCTURE ---
+            { cat: "CLOUD", title: "S3 Buckets", query: "intitle:\"index of\" \"s3.amazonaws.com\"" },
+            { cat: "CLOUD", title: "Firebase", query: "inurl:.firebaseio.com" },
+            { cat: "CLOUD", title: "Kube Configs", query: "inurl:\"/.kube/config\"" },
+            { cat: "CLOUD", title: "Docker Compose", query: "inurl:docker-compose.yml | inurl:docker-compose.yaml" },
+            { cat: "CLOUD", title: "OpenVPN Configs", query: "filetype:ovpn" },
+            { cat: "CLOUD", title: "SFTP/FTP Configs", query: "inurl:sftp-config.json | inurl:vscode/sftp.json | inurl:filezilla.xml" },
+            { cat: "CLOUD", title: "Open FTP Servers", query: "intitle:\"index of\" inurl:ftp" },
+
+            // --- CONFIGURATION LEAKS ---
+            { cat: "CONFIG", title: "WP Config", query: "inurl:wp-config.php | inurl:wp-config.php.bak" },
+            { cat: "CONFIG", title: "Drupal Settings", query: "filetype:php inurl:settings.php" },
+            { cat: "CONFIG", title: "Web.Config", query: "inurl:web.config filetype:config" },
+            { cat: "CONFIG", title: "Apache/Nginx Conf", query: "filetype:conf inurl:apache | filetype:conf inurl:nginx | filetype:conf inurl:httpd" },
+            { cat: "CONFIG", title: "DB Configs (INI/CNF)", query: "filetype:ini intext:\"db_password\" | filetype:cnf intext:\"db_user\"" },
+            { cat: "CONFIG", title: "NPM/Yarn Secrets", query: "inurl:.npmrc | inurl:.yarnrc | intext:\"_auth\"" },
+            { cat: "CONFIG", title: ".DS_Store (Mac)", query: "intitle:\"index of\" \".DS_Store\"" },
+            { cat: "CONFIG", title: "Generic Configs", query: "intitle:\"index of\" \".config\" | ext:xml | ext:conf | ext:cfg" },
+
+            // --- SERVER VULNERABILITIES ---
+            { cat: "VULN", title: "Apache Server Status", query: "intitle:\"Apache Status\" | inurl:server-status" },
+            { cat: "VULN", title: "PHP Info", query: "ext:php intitle:phpinfo \"PHP Version\"" },
+            { cat: "VULN", title: "Django Debug", query: "intext:\"DisallowedHost\" | intext:\"Django Version\" | intext:\"DEBUG = True\"" },
+            { cat: "VULN", title: "Rails/Laravel Logs", query: "inurl:storage/logs/laravel.log | intext:\"Whoops! There was an error.\"" },
+            { cat: "VULN", title: "SQL Errors", query: "intext:\"sql syntax near\" | intext:\"You have an error in your SQL syntax\"" },
+            { cat: "VULN", title: "Open Redirects", query: "inurl:redir | inurl:url | inurl:redirect | inurl:return | inurl:src=http | inurl:r=http" },
+            { cat: "VULN", title: "MongoDB Exposed", query: "intitle:\"MongoDB\" inurl:28017" },
+            { cat: "VULN", title: "GraphQL Playground", query: "inurl:/graphql" },
+            { cat: "VULN", title: "Vulnerable Params", query: "inurl:?id= intext:\"sql\"" },
+
+            // --- EXPOSED PANELS ---
+            { cat: "PANEL", title: "Grafana", query: "intitle:\"Grafana\" inurl:\"/dashboard\"" },
+            { cat: "PANEL", title: "Kibana / Elastic", query: "intitle:\"Kibana\" inurl:\"app/kibana\" | inurl:5601" },
+            { cat: "PANEL", title: "Jenkins", query: "intitle:\"Dashboard [Jenkins]\" | inurl:credentials.xml" },
+            { cat: "PANEL", title: "Swagger UI", query: "inurl:swagger-ui.html | inurl:api-docs | intitle:\"Swagger UI\"" },
+            { cat: "PANEL", title: "CPanel Login", query: "inurl:cpanel intitle:\"login\"" },
+            { cat: "PANEL", title: "Plesk Panel", query: "intitle:\"Plesk\" inurl:login_up.php" },
+            { cat: "PANEL", title: "Old Admin Panels", query: "intitle:\"admin login\"" },
+            { cat: "PANEL", title: "Camera Feeds", query: "intitle:\"Live View / - AXIS\"" },
+
+            // --- SENSITIVE FILES ---
+            { cat: "FILES", title: "Log Files (Creds)", query: "filetype:log intext:\"password\" | filetype:log intext:\"auth_token\"" },
+            { cat: "FILES", title: "Database Dumps", query: "ext:sql | ext:dbf | ext:mdb | filetype:sql intext:\"INSERT INTO\" | filetype:zip intext:dump.sql" },
+            { cat: "FILES", title: "SQLite DBs", query: "filetype:db" },
+            { cat: "FILES", title: "Email Archives", query: "filetype:pst | filetype:mbox" },
+            { cat: "FILES", title: "Backups (Zip/Tar)", query: "ext:bkf | ext:bkp | ext:bak | ext:old | ext:backup | intitle:\"index of\" backup" },
+            { cat: "FILES", title: "Source Code Zips", query: "intitle:\"index of\" \"src.zip\"" },
+            { cat: "FILES", title: "Development Notes", query: "intext:\"TODO\" filetype:txt" },
+            { cat: "FILES", title: "Exposed Dirs", query: "intitle:\"index of\" \"parent directory\"" },
+
+            // --- DOCUMENTS & LEGAL ---
+            { cat: "DOCS", title: "HR/Financial Docs", query: "filetype:xlsx intext:\"SSN\" OR intext:\"salary\"" },
+            { cat: "DOCS", title: "Contracts/NDAs", query: "filetype:pdf intext:\"non-disclosure\" | filetype:pdf intext:\"agreement\" intext:\"signature\"" },
+            { cat: "DOCS", title: "Invoices", query: "filetype:pdf intext:\"invoice\" intext:\"signature\"" },
+            { cat: "DOCS", title: "Network Docs", query: "filetype:pdf \"internal network\" \"confidential\"" },
+            { cat: "DOCS", title: "Internal Audit", query: "filetype:pdf \"internal audit\" \"confidential\"" },
+            { cat: "DOCS", title: "Changelogs", query: "intitle:\"changelog\" inurl:changelog.txt" }
+        ];
+
+        let currentApiIndex = 0;
+        let isScanning = false;
+        let abortController = null;
+        let foundLinks = []; 
+        const requestDelay = 1200; 
+
+        document.getElementById('apiStatus').innerText = `Nodes: ${apiPool.length} | Ready`;
+
+        function handleEnter(e) { if (e.key === 'Enter') initScan(); }
+
+        function cleanString(str) { return str.replace(/[\s\u200B-\u200D\uFEFF]/g, ''); }
+
+        function stopScan() {
+            if (isScanning) {
+                isScanning = false;
+                document.getElementById('scanStatus').innerText = "Process Terminated by User.";
+                if (abortController) abortController.abort();
+            }
+        }
+
+        function updateProgress(current, total) {
+            const percentage = Math.round(((current + 1) / total) * 100);
+            document.getElementById('progressFill').style.width = `${percentage}%`;
+        }
+
+        async function initScan() {
+            if(isScanning) return;
+            
+            let domain = document.getElementById('domainInput').value.trim();
+            domain = domain.replace(/^https?:\/\//i, '').replace(/\/+$/, '').trim();
+            if (!domain) { alert("Target domain required."); return; }
+
+            const resultsArea = document.getElementById('resultsArea');
+            const scanBtn = document.getElementById('scanBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const statusText = document.getElementById('scanStatus');
+            const progressTrack = document.getElementById('progressTrack');
+            const progressFill = document.getElementById('progressFill');
+            
+            resultsArea.innerHTML = '';
+            foundLinks = []; 
+            progressTrack.style.display = 'block';
+            progressFill.style.width = '0%';
+            
+            scanBtn.disabled = true;
+            scanBtn.innerText = "SCANNING...";
+            stopBtn.disabled = false;
+            
+            isScanning = true;
+            abortController = new AbortController();
+
+            // 1. Build Grid
+            dorks.forEach((item, index) => {
+                const finalQuery = `site:${domain} ${item.query}`;
+                const googleLink = `https://www.google.com/search?q=${encodeURIComponent(finalQuery)}`;
+
+                const card = document.createElement('a');
+                card.className = 'card';
+                card.id = `card-${index}`;
+                card.href = googleLink;
+                card.target = "_blank";
+                
+                card.onclick = (e) => {
+                    if(e.target.classList.contains('card-query')) {
+                        e.preventDefault();
+                        navigator.clipboard.writeText(item.query);
+                        const originalText = e.target.innerText;
+                        e.target.innerText = "COPIED!";
+                        setTimeout(() => e.target.innerText = originalText, 1000);
+                    }
+                }
+                
+                card.innerHTML = `
+                    <div>
+                        <div class="card-cat">${item.cat}</div>
+                        <div class="card-header">
+                            <span class="card-title">${item.title}</span>
+                            <span id="badge-${index}" class="badge waiting">WAITING</span>
+                        </div>
+                    </div>
+                    <div class="card-query" title="Click to Copy">${item.query}</div>
+                `;
+                resultsArea.appendChild(card);
+            });
+
+            // 2. Scan Loop
+            for (let i = 0; i < dorks.length; i++) {
+                if(!isScanning) break;
+                
+                const item = dorks[i];
+                const finalQuery = `site:${domain} ${item.query}`;
+                
+                updateCardStatus(i, 'loading', 'CHECKING');
+                statusText.innerText = `Scanning [${i+1}/${dorks.length}] - ${item.title}`;
+
+                const result = await performSmartSearch(finalQuery, i, statusText);
+
+                if (result && !result.error) {
+                    const count = result.searchInformation ? parseInt(result.searchInformation.totalResults || 0) : 0;
+                    if (count > 0) {
+                        updateCardStatus(i, 'success', `~${count} RESULTS`);
+                        moveToTop(i);
+                        
+                        if(result.items && result.items.length > 0) {
+                            result.items.forEach(link => {
+                                foundLinks.push({
+                                    dork: item.title,
+                                    title: link.title,
+                                    link: link.link
+                                });
+                            });
+                        }
+                    } else {
+                        updateCardStatus(i, 'empty', '0 RESULTS');
+                    }
+                } else if (result && result.error) {
+                    let msg = "ERROR";
+                    if(result.error.code === 400) msg = "BAD KEY";
+                    else if(result.error.code === 403) msg = "FORBIDDEN";
+                    else if(result.error.code === 429) msg = "QUOTA";
+                    updateCardStatus(i, 'error', msg);
+                } else {
+                    updateCardStatus(i, 'waiting', 'STOPPED');
+                }
+
+                updateProgress(i, dorks.length);
+
+                if (i < dorks.length - 1 && isScanning) {
+                    await new Promise(r => setTimeout(r, requestDelay));
+                }
+            }
+
+            scanBtn.disabled = false;
+            scanBtn.innerText = "START SCAN";
+            stopBtn.disabled = true;
+            if(isScanning) statusText.innerText = "Scan Complete. Found URLs: " + foundLinks.length;
+            isScanning = false;
+        }
+
+        async function performSmartSearch(query, index, statusElem) {
+            let consecutiveFailures = 0;
+
+            while (isScanning) {
+                const apiNode = apiPool[currentApiIndex];
+                const cleanKey = cleanString(apiNode.key);
+                const cleanCx = cleanString(apiNode.cx);
+
+                const url = `https://www.googleapis.com/customsearch/v1?key=${cleanKey}&cx=${cleanCx}&q=${encodeURIComponent(query)}`;
+
+                try {
+                    const response = await fetch(url, { signal: abortController.signal });
+                    const data = await response.json();
+
+                    if (!data.error) return data; 
+
+                    if (data.error.code === 429 || data.error.code === 403 || data.error.code === 500) {
+                        console.warn(`Node ${currentApiIndex} Failed. Switching...`);
+                        currentApiIndex = (currentApiIndex + 1) % apiPool.length;
+                        consecutiveFailures++;
+                        statusElem.innerText = `Switching API (${consecutiveFailures})...`;
+
+                        if (consecutiveFailures >= apiPool.length) {
+                             if(data.error.code === 400 || data.error.code === 403) return data; 
+                            statusElem.innerText = `All APIs busy. Waiting 5s...`;
+                            await new Promise(r => setTimeout(r, 5000));
+                            consecutiveFailures = 0; 
+                        } else {
+                            await new Promise(r => setTimeout(r, 200));
+                        }
+                    } else {
+                        return data; 
+                    }
+                } catch (err) {
+                    if (err.name === 'AbortError') return null;
+                    currentApiIndex = (currentApiIndex + 1) % apiPool.length;
+                    consecutiveFailures++;
+                    await new Promise(r => setTimeout(r, 1000));
+                }
+            }
+            return null;
+        }
+
+        function updateCardStatus(index, type, text) {
+            const badge = document.getElementById(`badge-${index}`);
+            const card = document.getElementById(`card-${index}`);
+            if(!badge) return;
+            badge.className = `badge ${type}`;
+            badge.innerText = text;
+            if(type === 'loading') card.classList.add('scanning');
+            else card.classList.remove('scanning');
+        }
+
+        function moveToTop(index) {
+            const grid = document.getElementById('resultsArea');
+            const card = document.getElementById(`card-${index}`);
+            if(card) grid.prepend(card);
+        }
+
+        function exportCSV() {
+            if(foundLinks.length === 0) { alert("No results found yet!"); return; }
+            
+            let csvContent = "data:text/csv;charset=utf-8,Dork Title,Page Title,URL\n";
+            foundLinks.forEach(row => {
+                let cleanTitle = row.title.replace(/,/g, " ");
+                csvContent += `${row.dork},${cleanTitle},${row.link}\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "asdf_scan_results.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function copyResults() {
+            if(foundLinks.length === 0) { alert("No results found yet!"); return; }
+            
+            const urls = foundLinks.map(i => i.link).join("\n");
+            navigator.clipboard.writeText(urls).then(() => {
+                alert(`Copied ${foundLinks.length} URLs to clipboard!`);
+            });
+        }
+    </script>
+</body>
+</html>

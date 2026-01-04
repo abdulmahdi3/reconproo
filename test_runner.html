@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Runner</title>
+    <style>body { font-family: sans-serif; padding: 20px; background: #222; color: #fff; }</style>
+</head>
+<body>
+    <h1>Unit Tests</h1>
+    <div id="results">Running...</div>
+    
+    <!-- Mocks for DOM elements expected by service -->
+    <div id="mock-container" style="display:none"></div>
+    <input id="globalTargetInput" style="display:none">
+
+    <script type="module">
+        import DorksSearchService from './services/Dorks_Search/module.js';
+
+        const results = document.getElementById('results');
+        const logs = [];
+        
+        function assert(condition, message) {
+            if (!condition) logs.push(`<div style="color: #ff4444">❌ FAIL: ${message}</div>`);
+            else logs.push(`<div style="color: #00cc00">✅ PASS: ${message}</div>`);
+        }
+
+        async function runTests() {
+            try {
+                // Setup Global Mocks if needed
+                
+                // Test 1: Instantiation
+                const service = new DorksSearchService();
+                assert(service !== null, "DorksSearchService instantiated");
+                assert(Array.isArray(service.dorks), "Dorks list is an array");
+                assert(service.dorks.length > 0, "Dorks list is not empty");
+                assert(service.apiPool.length > 0, "API Pool is initialized");
+
+                // Test 2: Init Flow
+                const container = document.getElementById('mock-container');
+                
+                // Mock fetch to avoid network errors
+                const originalFetch = window.fetch;
+                window.fetch = async (url) => {
+                    if (url.includes('module.html')) {
+                        return {
+                            text: async () => `<div id="scanBtn"></div><div id="stopBtn"></div><div id="resultsArea"></div><div id="apiStatus"></div>`
+                        };
+                    }
+                    return originalFetch(url);
+                };
+
+                await service.init(container);
+                assert(service.container === container, "Container attached");
+                assert(service.scanBtn !== null, "Scan button bound");
+                
+                // Cleanup
+                window.fetch = originalFetch;
+
+                results.innerHTML = logs.join('');
+            } catch (e) {
+                console.error(e);
+                results.innerHTML += `<br><div style="color: red">CRITICAL ERROR: ${e.message}</div>`;
+            }
+        }
+
+        runTests();
+    </script>
+</body>
+</html>

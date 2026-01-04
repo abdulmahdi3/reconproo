@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RECON PRO | Advanced OSINT Framework</title>
+    <meta name="description" content="Professional reconnaissance and OSINT framework for security researchers">
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-body: #0a0a0f;
+            --bg-card: rgba(24, 24, 30, 0.8);
+            --bg-card-solid: #18181e;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-glow: rgba(139, 92, 246, 0.3);
+            --text-main: #f4f4f5;
+            --text-muted: #71717a;
+            --text-dimmed: #52525b;
+
+            /* Vibrant gradient palette */
+            --brand-primary: #8b5cf6;
+            --brand-secondary: #06b6d4;
+            --brand-accent: #f43f5e;
+            --brand-glow: rgba(139, 92, 246, 0.25);
+
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+
+            /* Glassmorphism */
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated background */
+        .bg-effects {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .bg-gradient-1 {
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 50%);
+            animation: float1 20s ease-in-out infinite;
+        }
+
+        .bg-gradient-2 {
+            position: absolute;
+            bottom: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(6, 182, 212, 0.1) 0%, transparent 50%);
+            animation: float2 25s ease-in-out infinite;
+        }
+
+        .bg-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        @keyframes float1 {
+
+            0%,
+            100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+
+            33% {
+                transform: translate(30px, -30px) rotate(5deg);
+            }
+
+            66% {
+                transform: translate(-20px, 20px) rotate(-5deg);
+            }
+        }
+
+        @keyframes float2 {
+
+            0%,
+            100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+
+            33% {
+                transform: translate(-40px, 30px) rotate(-5deg);
+            }
+
+            66% {
+                transform: translate(30px, -40px) rotate(5deg);
+            }
+        }
+
+        /* Main container */
+        .app-container {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px 60px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .logo-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 8px 32px rgba(139, 92, 246, 0.3);
+            animation: pulse-glow 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                box-shadow: 0 8px 32px rgba(139, 92, 246, 0.3);
+            }
+
+            50% {
+                box-shadow: 0 8px 48px rgba(139, 92, 246, 0.5);
+            }
+        }
+
+        .brand-name {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 800;
+            font-size: 2.5rem;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, #fff 0%, var(--brand-primary) 50%, var(--brand-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tagline {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Control Panel */
+        .control-panel {
+            width: 100%;
+            max-width: 1200px;
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 32px;
+            position: sticky;
+            top: 20px;
+            z-index: 100;
+            box-shadow:
+                0 4px 24px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+        }
+
+        .main-toolbar {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        /* Input styling */
+        .input-wrapper {
+            flex: 1;
+            min-width: 280px;
+            position: relative;
+        }
+
+        .input-wrapper::before {
+            content: '🎯';
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            z-index: 2;
+        }
+
+        input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 16px 20px 16px 48px;
+            border-radius: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        input::placeholder {
+            color: var(--text-dimmed);
+        }
+
+        input:focus {
+            border-color: var(--brand-primary);
+            box-shadow: 0 0 0 3px var(--brand-glow), 0 0 20px var(--brand-glow);
+        }
+
+        /* Button group containers */
+        #primary-actions,
+        #secondary-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Progress bar */
+        .progress-track {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 16px;
+            display: none;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--brand-primary), var(--brand-secondary));
+            width: 0%;
+            transition: width 0.4s ease;
+            box-shadow: 0 0 20px var(--brand-primary);
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        /* Status bar */
+        .status-bar {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .status-bar span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Service menu */
+        .service-menu {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .service-btn {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .service-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .service-btn.active {
+            background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 4px 20px var(--brand-glow);
+        }
+
+        .service-btn::before {
+            content: attr(data-icon);
+            font-size: 1.1em;
+        }
+
+        /* Mount point */
+        #service-mount-point {
+            width: 100%;
+            max-width: 1600px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .loading-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            padding: 60px;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--brand-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Shared Button Styles */
+        button {
+            font-family: 'JetBrains Mono', monospace;
+            background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+            color: #fff;
+            border: none;
+            padding: 0 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            height: 52px;
+            white-space: nowrap;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        button:hover::before {
+            left: 100%;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px var(--brand-glow);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: var(--border-color);
+            color: var(--text-dimmed);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-stop {
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+        }
+
+        .btn-action {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            font-size: 0.8rem;
+            height: 52px;
+        }
+
+        .btn-action:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: none;
+        }
+
+        .error-msg {
+            color: var(--danger);
+            font-family: 'JetBrains Mono', monospace;
+            padding: 20px;
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: 12px;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 60px;
+            padding: 24px;
+            text-align: center;
+            color: var(--text-dimmed);
+            font-size: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .footer a {
+            color: var(--brand-primary);
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .brand-name {
+                font-size: 1.8rem;
+            }
+
+            .logo-icon {
+                width: 44px;
+                height: 44px;
+                font-size: 22px;
+            }
+
+            .control-panel {
+                padding: 16px;
+                border-radius: 16px;
+            }
+
+            .main-toolbar {
+                flex-direction: column;
+            }
+
+            .input-wrapper {
+                width: 100%;
+                min-width: 100%;
+            }
+
+            #primary-actions,
+            #secondary-actions {
+                width: 100%;
+            }
+
+            #primary-actions button,
+            #secondary-actions button {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Background effects -->
+    <div class="bg-effects">
+        <div class="bg-gradient-1"></div>
+        <div class="bg-gradient-2"></div>
+        <div class="bg-grid"></div>
+    </div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <h1 class="brand-name">RECON PRO</h1>
+            </div>
+            <p class="tagline">Advanced OSINT & Reconnaissance Framework</p>
+        </header>
+
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <div class="main-toolbar">
+                <div class="input-wrapper">
+                    <input type="text" id="globalTargetInput" placeholder="Enter target domain..." autofocus>
+                </div>
+                <div id="primary-actions"></div>
+                <div id="secondary-actions"></div>
+            </div>
+
+            <div class="progress-track" id="globalProgressTrack">
+                <div class="progress-fill" id="globalProgressFill"></div>
+            </div>
+
+            <div class="status-bar" id="globalStatusBar">
+                <span id="apiStatus"></span>
+                <span id="scanStatus"></span>
+            </div>
+
+            <div class="service-menu" id="serviceMenu">
+                <!-- Injected by JS -->
+            </div>
+        </div>
+
+        <!-- Service Content -->
+        <div id="service-mount-point">
+            <div class="loading-state">
+                <div class="loading-spinner"></div>
+                <span>Initializing modules...</span>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>RECON PRO &copy;
+                <script>document.write(new Date().getFullYear())</script> — Professional Security Research Tools | Made
+                by <strong>foji</strong>
+            </p>
+        </footer>
+    </div>
+
+    <script type="module">
+        // ======================================================
+        // SERVICE REGISTRY
+        // ======================================================
+        const services = [
+            { id: 'Dorks_Search', name: 'Dorks Search', icon: '🔎', path: './services/Dorks_Search/module.js?v=3' },
+            { id: 'Whois_Website', name: 'Whois Lookup', icon: '📋', path: './services/Whois_Website/module.js?v=3' },
+            { id: 'Subdomain_Discovery', name: 'Subdomains', icon: '🌐', path: './services/Subdomain_Discovery/module.js?v=3' },
+            { id: 'Directory_Fuzzing', name: 'Dir Fuzzer', icon: '📁', path: './services/Directory_Fuzzing/module.js?v=3' }
+        ];
+
+        let currentServiceInstance = null;
+        const mountPoint = document.getElementById('service-mount-point');
+        const globalInput = document.getElementById('globalTargetInput');
+        const serviceMenu = document.getElementById('serviceMenu');
+        const primaryActions = document.getElementById('primary-actions');
+        const secondaryActions = document.getElementById('secondary-actions');
+
+        // ======================================================
+        // INITIALIZATION
+        // ======================================================
+        function init() {
+            renderMenu();
+            switchService('Dorks_Search');
+        }
+
+        function renderMenu() {
+            serviceMenu.innerHTML = '';
+            services.forEach(service => {
+                const btn = document.createElement('button');
+                btn.className = 'service-btn';
+                btn.innerHTML = `<span>${service.icon}</span> ${service.name}`;
+                btn.onclick = () => switchService(service.id);
+                btn.dataset.id = service.id;
+                serviceMenu.appendChild(btn);
+            });
+        }
+
+        function updateActiveMenu(id) {
+            document.querySelectorAll('.service-btn').forEach(btn => {
+                if (btn.dataset.id === id) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+        }
+
+        async function switchService(serviceId) {
+            const service = services.find(s => s.id === serviceId);
+            if (!service) return;
+
+            updateActiveMenu(serviceId);
+
+            if (currentServiceInstance && currentServiceInstance.destroy) {
+                currentServiceInstance.destroy();
+            }
+
+            primaryActions.innerHTML = '';
+            secondaryActions.innerHTML = '';
+
+            document.getElementById('globalProgressTrack').style.display = 'none';
+            document.getElementById('apiStatus').innerText = '';
+            document.getElementById('scanStatus').innerText = '';
+
+            if (service.id === 'Super_Saiyan') {
+                loadSuperSaiyan();
+            } else {
+                loadService(service);
+            }
+        }
+
+        async function loadService(service) {
+            mountPoint.innerHTML = `
+                <div class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <span>Loading ${service.name}...</span>
+                </div>
+            `;
+
+            try {
+                const module = await import(service.path);
+                const ServiceClass = module.default;
+                currentServiceInstance = new ServiceClass();
+
+                mountPoint.innerHTML = '';
+                await currentServiceInstance.init(mountPoint, {
+                    primaryActions: primaryActions,
+                    secondaryActions: secondaryActions,
+                    progressTrack: document.getElementById('globalProgressTrack'),
+                    progressFill: document.getElementById('globalProgressFill'),
+                    statusText: document.getElementById('scanStatus'),
+                    apiStatus: document.getElementById('apiStatus')
+                });
+
+            } catch (err) {
+                console.error(err);
+                mountPoint.innerHTML = `<div class="error-msg">⚠️ Failed to load service: ${err.message}</div>`;
+            }
+        }
+
+        async function loadSuperSaiyan() {
+            mountPoint.innerHTML = `
+                <div class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <span>Initializing Full Scan Mode...</span>
+                </div>
+            `;
+
+            await new Promise(r => setTimeout(r, 500));
+            mountPoint.innerHTML = '';
+
+            for (const service of services) {
+                if (service.id === 'Super_Saiyan') continue;
+
+                const wrapper = document.createElement('div');
+                wrapper.style.cssText = 'width: 100%; margin-bottom: 40px; padding: 24px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px;';
+
+                const title = document.createElement('h3');
+                title.innerHTML = `${service.icon} ${service.name}`;
+                title.style.cssText = 'font-family: "JetBrains Mono", monospace; color: var(--brand-primary); margin-bottom: 20px; font-size: 1.1rem;';
+                wrapper.appendChild(title);
+
+                const content = document.createElement('div');
+                wrapper.appendChild(content);
+                mountPoint.appendChild(wrapper);
+
+                try {
+                    const module = await import(service.path);
+                    const ServiceClass = module.default;
+                    const instance = new ServiceClass();
+                    await instance.init(content, {});
+                } catch (err) {
+                    content.innerHTML = `<div class="error-msg">Failed: ${err.message}</div>`;
+                }
+            }
+        }
+
+        // Enter key to trigger scan
+        globalInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const startBtn = primaryActions.querySelector('button:first-child');
+                if (startBtn && !startBtn.disabled) startBtn.click();
+            }
+        });
+
+        // Initialize
+        init();
+
+        // ======================================================
+        // SECURITY & ANALYTICS
+        // ======================================================
+        import { analytics } from './js/analytics.js';
+
+        // Global sanitization function for all services
+        window.sanitizeInput = function (input) {
+            if (!input) return '';
+            // HTML entity encode
+            return input.replace(/[&<>"'/]/g, function (s) {
+                return {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;',
+                    '/': '&#x2F;'
+                }[s];
+            }).trim();
+        };
+
+        // Validate domain format
+        window.validateDomain = function (domain) {
+            const re = /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$/i;
+            return re.test(domain);
+        };
+
+        // Track functionality usage
+        document.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                analytics.trackEvent('click', {
+                    id: e.target.id,
+                    text: e.target.innerText,
+                    service: currentServiceInstance?.serviceId
+                });
+            }
+        });
+
+    </script>
+</body>
+
+</html>
