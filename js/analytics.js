@@ -4,7 +4,7 @@
  */
 
 const ANALYTICS_CONFIG = {
-    endpoint: '/api/analytics', // Backend endpoint
+    endpoint: './analytics_server.php', // Changed to PHP for Shared Hosting
     dbName: 'ReconProAnalytics',
     storeName: 'visits',
     version: 1
